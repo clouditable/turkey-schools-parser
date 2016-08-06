@@ -43,12 +43,12 @@ var htmlParser = () => {
         pageCount++
       }
       else {
-        console.log('yoktur');
+        console.log('Okul Yok');
       }
 
     } while (hasTd);
 
-    console.log('Bitti', hasTd);
+    console.log('Şehir Bitti');
   };
 
 
@@ -61,5 +61,6 @@ fs.writeFile("./schools.json", JSON.stringify(doc), function(err) {
     return console.log(err);
   }
 
-  console.log("The file was saved!");
+  console.log("Dosya Kaydedildi.");
 });
+
