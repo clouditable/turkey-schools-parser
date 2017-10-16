@@ -1,10 +1,3 @@
-const similizeSchool = function(data, row) {
-  const similizeSchol =  underscore.find(data, function(x) {
-    return ((x.district === row.district) && (x.school === row.school));
-  });
-  return similizeSchol ? true : false;
-}
-
 const request = require('request')
 const cheerio = require('cheerio')
 const async = require('async')
@@ -53,11 +46,18 @@ let main = (callback) => {
                 }
               }
             })
-          } // td 
+          } // td
         })
       } // page number
     })
   } // city code
+}
+
+const similizeSchool = function(data, row) {
+  const similizeSchol =  underscore.find(data, function(x) {
+    return ((x.district === row.district) && (x.school === row.school));
+  });
+  return similizeSchol ? true : false;
 }
 
 let writeFile = () => {
