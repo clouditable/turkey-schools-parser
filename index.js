@@ -1,16 +1,15 @@
-/*
 const similizeSchool = function(data, row) {
   const similizeSchol =  underscore.find(data, function(x) {
     return ((x.district === row.district) && (x.school === row.school));
   });
   return similizeSchol ? true : false;
-};
-*/
+}
 
 const request = require('request')
 const cheerio = require('cheerio')
 const async = require('async')
 const fs = require('fs')
+const underscore = require('underscore')
 var SchoolsJsonData = [];
 
 let main = (callback) => {
@@ -35,7 +34,8 @@ let main = (callback) => {
         request(url, (err, resp, html) => {
           if (err) return null
           const $ = cheerio.load(html, {xmlMode: true})
-          // Satirlar alindi.
+          // Satirlar alindi. Burda icerikleri temizleyen kod yazmaliyiz, bazen sagdan veya soldan bosluk oluyor.
+          // utf sorunu cozmeliyiz.
           let td = $('td');
           for (let j = 0; j<td.length; j++) {
             td.each(function(i, td) {
@@ -47,20 +47,17 @@ let main = (callback) => {
                   district: data.split("-")[1],
                   school: data.split("-")[2]
                 }
-                /*
-                if (row.city && row.district && row.school && !similizeSchool(jsonDatas, row)) {
-                  jsonDatas.push(row);
+                if (row.city && row.district && row.school && !similizeSchool(SchoolsJsonData, row)) {
+                  console.log(row)
+                  SchoolsJsonData.push(row)
                 }
-                */
-                console.log(row)
-                SchoolsJsonData.push(row)
               }
-            });
-          }
+            })
+          } // td 
         })
-      }
+      } // page number
     })
-  }
+  } // city code
 }
 
 let writeFile = () => {
