@@ -54,7 +54,6 @@ let main = (callback) => {
                   school: data.split("-")[2] ? data.split("-")[2].slice(1) : ""
                 }
                 if (row && row.city && row.district && row.school && !similizeSchool(SchoolsJsonData, row)) {
-                  console.log(row)
                   SchoolsJsonData.push(row)
                 }
               }
