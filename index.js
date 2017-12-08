@@ -4,6 +4,15 @@ const async = require('async')
 const fs = require('fs')
 const underscore = require('underscore')
 var SchoolsJsonData = [];
+const iconv  = require('iconv-lite');
+
+
+let writeFile = () => {
+  fs.writeFile("./turkey-meb-schools.json", JSON.stringify(SchoolsJsonData), (err) => {
+    if(err) return console.log(err)
+    console.log("Dosya Kaydedildi.")
+  })
+}
 
 let main = (callback) => {
   console.log("[+] Main function!")
@@ -12,10 +21,12 @@ let main = (callback) => {
     // Burda Ilkoduna gore istek atiyoruz ve son sayfa numarasini ogreniyoruz.
     url = `http://www.meb.gov.tr/baglantilar/okullar/?ILKODU=${CityCode}`
     console.log(url)
-    request(url, (err, resp, html) => {
+    var requestOptions  = { encoding: null, method: "GET", uri: url};
+    request(requestOptions, (err, resp, html) => {
       if (err) return null
       // <a class="last" href="?ILKODU=1&ILCEKODU=&SAYFANO=47" title="Son Sayfa">...</a>
-      const $ = cheerio.load(html, {xmlMode: true})
+      var utf8String = iconv.decode(new Buffer(html), "ISO-8859-1");
+      const $ = cheerio.load(utf8String, {xmlMode: true, decodeEntities:false })
       href = $('.last').attr('href')
       TotalPageSize = href.split("=").pop()
       if (TotalPageSize === 0 || TotalPageSize === undefined) return null
@@ -24,9 +35,11 @@ let main = (callback) => {
       for(let PageNumber = 1; PageNumber <= TotalPageSize; PageNumber++) {
         url = `http://www.meb.gov.tr/baglantilar/okullar/?ILKODU=${CityCode}&ILCEKODU=&SAYFANO=${PageNumber}`
         console.log(url)
-        request(url, (err, resp, html) => {
+        var requestOptions  = { encoding: null, method: "GET", uri: url};
+        request(requestOptions, (err, resp, html) => {
           if (err) return null
-          const $ = cheerio.load(html, {xmlMode: true})
+          var utf8String = iconv.decode(new Buffer(html), "ISO-8859-9");
+          const $ = cheerio.load(utf8String, {xmlMode: true, decodeEntities:false })
           // Satirlar alindi. Burda icerikleri temizleyen kod yazmaliyiz, bazen sagdan veya soldan bosluk oluyor.
           // utf sorunu cozmeliyiz.
           let td = $('td');
@@ -36,11 +49,11 @@ let main = (callback) => {
               if (children[0].children[0] && children[0].children[0].data) {
                 let data = children[0].children[0].data.toLowerCase();
                 let row = {
-                  city : data.split("-")[0],
-                  district: data.split("-")[1],
-                  school: data.split("-")[2]
+                  city : data.split("-")[0] ? data.split("-")[0].slice(0,-1) :"",
+                  district:  data.split("-")[1]? data.split("-")[1].slice(1,-1) : "",
+                  school: data.split("-")[2] ? data.split("-")[2].slice(1) : ""
                 }
-                if (row.city && row.district && row.school && !similizeSchool(SchoolsJsonData, row)) {
+                if (row && row.city && row.district && row.school && !similizeSchool(SchoolsJsonData, row)) {
                   console.log(row)
                   SchoolsJsonData.push(row)
                 }
@@ -60,12 +73,6 @@ const similizeSchool = function(data, row) {
   return similizeSchol ? true : false;
 }
 
-let writeFile = () => {
-  fs.writeFile("./turkey-meb-schools.json", JSON.stringify(SchoolsJsonData), (err) => {
-    if(err) return console.log(err)
-    console.log("Dosya Kaydedildi.")
-  })
-}
 
 // https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main
 if (require.main === module) {
